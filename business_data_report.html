@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Business Data Analysis Report</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: white;
+            box-shadow: 0 0 30px rgba(0,0,0,0.1);
+            border-radius: 10px;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 40px 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px 10px 0 0;
+            margin: -20px -20px 30px -20px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .section {
+            margin: 40px 0;
+            padding: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+        }
+        
+        .section h2 {
+            color: #667eea;
+            font-size: 1.8em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+        }
+        
+        .kpi-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-top: 4px solid #667eea;
+            transition: transform 0.3s ease;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .kpi-value {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .kpi-label {
+            font-size: 0.9em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .chart-container {
+            margin: 30px 0;
+            padding: 20px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .chart-title {
+            text-align: center;
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+        
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 30px;
+            margin: 30px 0;
+        }
+        
+        .forecast-section {
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+        
+        .forecast-section h3 {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .trend-indicator {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin: 5px;
+        }
+        
+        .trend-down {
+            background: #ff4757;
+            color: white;
+        }
+        
+        .recommendations-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .recommendation-card {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #27ae60;
+        }
+        
+        .recommendation-card h4 {
+            color: #27ae60;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+        
+        .executive-summary {
+            background: linear-gradient(135deg, #3742fa, #2f3542);
+            color: white;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 30px 0;
+        }
+        
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 15px 25px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        
+        .print-button:hover {
+            background: #5a6fd8;
+            transform: scale(1.05);
+        }
+        
+        @media print {
+            .print-button { display: none; }
+            .container { box-shadow: none; margin: 0; }
+            .section { page-break-inside: avoid; }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button" onclick="window.print()">📄 Save as PDF</button>
+    
+    <div class="container">
+        <div class="header">
+            <h1>Business Data Analysis Report</h1>
+            <p>Ad Campaign Performance & Strategic Insights</p>
+            <p><strong>Author:</strong> Rakesh Kumar Gupta (Data Analyst)</p>
+        </div>
+
+        <div class="executive-summary">
+            <h2>📊 Executive Summary</h2>
+            <p>This comprehensive analysis reveals significant concentration of marketing efforts on Facebook and Instagram platforms, with 'Stories' and 'Image' ad types dominating our campaign portfolio. While maintaining a healthy Click-Through Rate of 11.80%, our forecasting models indicate concerning downward trends across all key metrics over the next three months.</p>
+            <br>
+            <p><strong>Critical Finding:</strong> Declining trajectories in Impressions, Clicks, and Purchases necessitate immediate strategic intervention to optimize advertising performance and ensure sustained business growth.</p>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Key Performance Indicators Dashboard</h2>
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-value">343,157</div>
+                    <div class="kpi-label">Total Impressions</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">40,495</div>
+                    <div class="kpi-label">Total Clicks</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">11.80%</div>
+                    <div class="kpi-label">Click-Through Rate</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">2,050</div>
+                    <div class="kpi-label">Total Purchases</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">5.06%</div>
+                    <div class="kpi-label">Conversion Rate</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">$2.54M</div>
+                    <div class="kpi-label">Total Budget</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">66.04</div>
+                    <div class="kpi-label">Avg Campaign Days</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-value">9,950</div>
+                    <div class="kpi-label">Unique Users</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>📈 Visual Analytics Dashboard</h2>
+            
+            <div class="charts-grid">
+                <div class="chart-container">
+                    <div class="chart-title">Insight 1: Distribution of Ad Platforms</div>
+                    <canvas id="platformChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">Insight 2: Distribution of Ad Types</div>
+                    <canvas id="adTypeDistChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">Insight 3: Gender Distribution of Users</div>
+                    <canvas id="genderChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">Insight 4: Age Group Distribution of Users</div>
+                    <canvas id="ageChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">Insight 5: Top 5 Countries by User Count</div>
+                    <canvas id="countryChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">Insight 6: Impressions by Ad Platform</div>
+                    <canvas id="impressionsChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">Insight 7: Clicks by Ad Type</div>
+                    <canvas id="clicksByTypeChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">Insight 8: CTR by Ad Platform</div>
+                    <canvas id="ctrChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">Insight 9: Conversion Rate (Purchase) by Ad Type</div>
+                    <canvas id="conversionChart"></canvas>
+                </div>
+                
+                <div class="chart-container">
+                    <div class="chart-title">Insight 10: Campaign Performance (Total Budget vs. Total Clicks)</div>
+                    <canvas id="budgetClicksChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="forecast-section">
+            <h3>🔮 Forecast Analysis & Trends</h3>
+            <p><strong>Forecast Period:</strong> Next 3 Months | <strong>Model:</strong> Linear Regression Analysis</p>
+            <br>
+            <div style="text-align: center;">
+                <span class="trend-indicator trend-down">↓ Impressions: Decreasing</span>
+                <span class="trend-indicator trend-down">↓ Clicks: Decreasing</span>
+                <span class="trend-indicator trend-down">↓ Purchases: Decreasing</span>
+            </div>
+            <br>
+            <p><strong>Critical Alert:</strong> All primary metrics show negative trajectories, indicating potential ad fatigue, market saturation, or declining campaign effectiveness. Immediate strategic review required.</p>
+        </div>
+
+        <div class="section">
+            <h2>🎯 Strategic Recommendations</h2>
+            <div class="recommendations-list">
+                <div class="recommendation-card">
+                    <h4>1. Platform Diversification</h4>
+                    <p>Reduce dependency on Facebook/Instagram by exploring LinkedIn, TikTok, YouTube, and emerging platforms to capture new audiences and reduce platform risk.</p>
+                </div>
+                
+                <div class="recommendation-card">
+                    <h4>2. Creative Optimization</h4>
+                    <p>Implement comprehensive A/B testing for ad creatives, focusing on compelling visuals, clear messaging, and strong CTAs to combat declining engagement.</p>
+                </div>
+                
+                <div class="recommendation-card">
+                    <h4>3. Audience Segmentation</h4>
+                    <p>Leverage demographic insights (25-34 age group dominance, gender distribution) to create hyper-targeted campaigns with personalized messaging.</p>
+                </div>
+                
+                <div class="recommendation-card">
+                    <h4>4. Conversion Funnel Analysis</h4>
+                    <p>Conduct thorough analysis from ad click to purchase completion, identifying and eliminating bottlenecks to improve 5.06% conversion rate.</p>
+                </div>
+                
+                <div class="recommendation-card">
+                    <h4>5. Budget Reallocation</h4>
+                    <p>Redistribute $2.54M budget based on performance metrics, prioritizing high-converting ad types and platforms while reducing spend on underperformers.</p>
+                </div>
+                
+                <div class="recommendation-card">
+                    <h4>6. Real-time Monitoring</h4>
+                    <p>Implement automated dashboard for continuous KPI monitoring, enabling rapid response to negative trends before they impact revenue.</p>
+                </div>
+                
+                <div class="recommendation-card">
+                    <h4>7. Geographic Optimization</h4>
+                    <p>Capitalize on strong performance in US, UK, and Canada while exploring expansion opportunities in India and Germany markets.</p>
+                </div>
+                
+                <div class="recommendation-card">
+                    <h4>8. Lifetime Value Focus</h4>
+                    <p>Shift strategy beyond immediate conversions to maximize Customer Lifetime Value through retention and repeat purchase programs.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>🔬 Advanced Analytics Insights</h2>
+            <h3>Time Series Decomposition Analysis</h3>
+            <p>Our time series analysis reveals underlying patterns in campaign performance, enabling more accurate forecasting and strategic planning. The decomposition methodology separates trend, seasonality, and residual components to identify:</p>
+            <ul style="margin: 20px 0; padding-left: 30px;">
+                <li><strong>Trend Component:</strong> Long-term directional movement in metrics</li>
+                <li><strong>Seasonal Patterns:</strong> Recurring weekly/monthly fluctuations</li>
+                <li><strong>Residual Analysis:</strong> Anomaly detection and unexpected deviations</li>
+            </ul>
+            
+            <h3>Customer Lifetime Value (LTV) Framework</h3>
+            <p>Implementation of cohort analysis and LTV calculations will provide insights into:</p>
+            <ul style="margin: 20px 0; padding-left: 30px;">
+                <li>Customer acquisition cost optimization</li>
+                <li>Retention rate improvement strategies</li>
+                <li>Revenue forecasting accuracy</li>
+                <li>Segment-specific value propositions</li>
+            </ul>
+        </div>
+
+        <div style="text-align: center; padding: 30px; background: #f8f9fa; border-radius: 10px; margin-top: 40px;">
+            <h3>📋 Next Steps & Implementation</h3>
+            <p><strong>Immediate Actions (Week 1-2):</strong> Implement monitoring dashboard, begin A/B testing new creatives</p>
+            <p><strong>Short-term Goals (Month 1):</strong> Launch diversified platform campaigns, optimize conversion funnel</p>
+            <p><strong>Long-term Strategy (Months 2-3):</strong> Full LTV analysis, advanced segmentation, seasonal optimization</p>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; color: #666; border-top: 2px solid #eee; margin-top: 40px;">
+            <p><em>This report serves as a foundational analysis. Continuous monitoring, detailed experimentation, and agile strategy adjustments will be crucial for sustained success.</em></p>
+            <br>
+            <p><strong>Report Generated:</strong> August 2025 | <strong>Data Quality:</strong> High (No missing values) | <strong>Confidence Level:</strong> 95%</p>
+        </div>
+    </div>
+
+    <script>
+        // Chart.js configurations with enhanced styling
+        const chartOptions = {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        padding: 20,
+                        usePointStyle: true
+                    }
+                }
+            }
+        };
+
+        // Insight 1: Platform Distribution Chart
+        new Chart(document.getElementById('platformChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Facebook', 'Instagram'],
+                datasets: [{
+                    data: [128, 72],
+                    backgroundColor: ['#3b5998', '#E4405F'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Ads'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Insight 2: Ad Type Distribution
+        new Chart(document.getElementById('adTypeDistChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Stories', 'Image', 'Carousel', 'Video'],
+                datasets: [{
+                    data: [65, 52, 51, 32],
+                    backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#f5576c'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Ads'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Insight 3: Gender Distribution
+        new Chart(document.getElementById('genderChart'), {
+            type: 'pie',
+            data: {
+                labels: ['Male', 'Female', 'Other'],
+                datasets: [{
+                    data: [55.4, 34.4, 10.2],
+                    backgroundColor: ['#36a2eb', '#ff6384', '#4bc0c0'],
+                    borderWidth: 0
+                }]
+            },
+            options: chartOptions
+        });
+
+        // Insight 4: Age Groups
+        new Chart(document.getElementById('ageChart'), {
+            type: 'bar',
+            data: {
+                labels: ['25-34', '18-24', '35-44', '16-17', '45-54', '55-65'],
+                datasets: [{
+                    data: [4200, 3100, 1500, 900, 300, 100],
+                    backgroundColor: '#667eea',
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Number of Users'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Insight 5: Top Countries
+        new Chart(document.getElementById('countryChart'), {
+            type: 'bar',
+            data: {
+                labels: ['United States', 'United Kingdom', 'Canada', 'India', 'Germany'],
+                datasets: [{
+                    data: [3000, 1500, 1000, 950, 800],
+                    backgroundColor: ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'User Count'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Insight 6: Impressions by Ad Platform
+        new Chart(document.getElementById('impressionsChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Facebook', 'Instagram'],
+                datasets: [{
+                    data: [218000, 125000],
+                    backgroundColor: ['#3b5998', '#E4405F'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Total Impressions'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Insight 7: Clicks by Ad Type
+        new Chart(document.getElementById('clicksByTypeChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Stories', 'Image', 'Carousel', 'Video'],
+                datasets: [{
+                    data: [13000, 11000, 10500, 6800],
+                    backgroundColor: ['#667eea', '#764ba2', '#f093fb', '#f5576c'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: 'Total Clicks'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Insight 8: CTR by Platform
+        new Chart(document.getElementById('ctrChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Facebook', 'Instagram'],
+                datasets: [{
+                    data: [11.8, 11.9],
+                    backgroundColor: ['#3b5998', '#E4405F'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 15,
+                        title: {
+                            display: true,
+                            text: 'CTR (%)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Insight 9: Conversion Rate by Ad Type
+        new Chart(document.getElementById('conversionChart'), {
+            type: 'bar',
+            data: {
+                labels: ['Stories', 'Carousel', 'Video', 'Image'],
+                datasets: [{
+                    data: [5.3, 5.1, 5.0, 4.6],
+                    backgroundColor: ['#27ae60', '#2ecc71', '#58d68d', '#85c1e9'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 6,
+                        title: {
+                            display: true,
+                            text: 'Conversion Rate (%)'
+                        }
+                    }
+                }
+            }
+        });
+
+        // Insight 10: Budget vs Clicks Scatter Plot
+        new Chart(document.getElementById('budgetClicksChart'), {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Campaign Performance',
+                    data: [
+                        {x: 15000, y: 1600}, {x: 18000, y: 800}, {x: 20000, y: 1450}, {x: 22000, y: 1250},
+                        {x: 25000, y: 1250}, {x: 35000, y: 1100}, {x: 38000, y: 1250}, {x: 40000, y: 820},
+                        {x: 42000, y: 600}, {x: 45000, y: 1180}, {x: 50000, y: 1000}, {x: 55000, y: 1440},
+                        {x: 60000, y: 1600}, {x: 65000, y: 850}, {x: 70000, y: 1200}, {x: 75000, y: 600},
+                        {x: 80000, y: 800}, {x: 85000, y: 610}, {x: 90000, y: 1700}, {x: 95000, y: 990}
+                    ],
+                    backgroundColor: '#667eea',
+                    borderColor: '#667eea',
+                    pointRadius: 6
+                }]
+            },
+            options: {
+                ...chartOptions,
+                scales: {
+                    x: {
+                        title: {
+                            display: true,
+                            text: 'Total Budget ($)'
+                        }
+                    },
+                    y: {
+                        title: {
+                            display: true,
+                            text: 'Total Clicks'
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
